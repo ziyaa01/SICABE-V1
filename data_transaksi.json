@@ -1,0 +1,19 @@
+[
+  {
+    "id": "T01",
+    "tanggal": "2026-01-01",
+    "keterangan": "Setoran Modal",
+    "debet": "1-001",
+    "kredit": [
+      {
+        "kode": "3-001",
+        "nominal": 7500000
+      },
+      {
+        "kode": "3-002",
+        "nominal": 7500000
+      }
+    ],
+    "nominal": 15000000
+  }
+]
