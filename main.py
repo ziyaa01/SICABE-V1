@@ -1,12 +1,11 @@
 import streamlit as st
-from app import (TEMA, apply_tema, halaman_login,
+from app import (halaman_login,
                  tampilkan_header, halaman_dashboard,
                  halaman_input_transaksi, halaman_jurnal_umum,
                  halaman_buku_besar, halaman_neraca_saldo,
-                 halaman_jurnal_penyesuaian, halaman_laba_rugi,
+                 halaman_jurnal_penyesuaian,halaman_buku_besar_setelah_penyesuaian, halaman_laba_rugi,
                  halaman_neraca, halaman_jurnal_penutup,
-                 halaman_ekspor, halaman_kelola_akun,
-                 halaman_pengaturan)
+                 halaman_ekspor, halaman_kelola_akun)
 from akun import load_akun
 from transaksi import load_transaksi
 
@@ -20,11 +19,6 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "username" not in st.session_state:
     st.session_state.username = ""
-if "tema" not in st.session_state:
-    st.session_state.tema = "Pink"
-
-t = TEMA[st.session_state.tema]
-apply_tema(t)
 
 if not st.session_state.logged_in:
     halaman_login()
@@ -33,12 +27,10 @@ if not st.session_state.logged_in:
 akun = load_akun()
 data = load_transaksi()
 
-tampilkan_header(t)
+tampilkan_header()
 
 with st.sidebar:
-    st.markdown(
-        f"<h3 style='color:{t['accent']}'>📌 Menu</h3>",
-        unsafe_allow_html=True)
+    st.header("📌 Menu")
     menu = st.selectbox("", [
         "🏠 Dashboard",
         "➕ Input Transaksi",
@@ -46,40 +38,40 @@ with st.sidebar:
         "📚 Buku Besar",
         "⚖️ Neraca Saldo",
         "🔧 Jurnal Penyesuaian",
+        "📚 Buku Besar Setelah Penyesuaian",
         "⚖️ Neraca Saldo Disesuaikan",
         "📊 Laporan Laba Rugi",
         "🏦 Neraca",
         "📝 Jurnal Penutup",
         "📁 Ekspor Excel",
         "✏️ Kelola Akun",
-        "⚙️ Pengaturan Tema"
     ])
-
+        
 if menu == "🏠 Dashboard":
-    halaman_dashboard(data, akun, t)
+    halaman_dashboard(data, akun)
 elif menu == "➕ Input Transaksi":
-    halaman_input_transaksi(data, akun, t)
+    halaman_input_transaksi(data, akun)
 elif menu == "📋 Jurnal Umum":
-    halaman_jurnal_umum(data, akun, t)
+    halaman_jurnal_umum(data, akun)
 elif menu == "📚 Buku Besar":
-    halaman_buku_besar(data, akun, t)
+    halaman_buku_besar(data, akun)
 elif menu == "⚖️ Neraca Saldo":
-    halaman_neraca_saldo(data, akun, t,
+    halaman_neraca_saldo(data, akun,
         "Neraca Saldo", "Sebelum Penyesuaian")
 elif menu == "🔧 Jurnal Penyesuaian":
-    halaman_jurnal_penyesuaian(data, akun, t)
+    halaman_jurnal_penyesuaian(data, akun)
+elif menu == "📚 Buku Besar Setelah Penyesuaian":
+    halaman_buku_besar_setelah_penyesuaian(data, akun)
 elif menu == "⚖️ Neraca Saldo Disesuaikan":
-    halaman_neraca_saldo(data, akun, t,
+    halaman_neraca_saldo(data, akun,
         "Neraca Saldo Disesuaikan", "Setelah Penyesuaian")
 elif menu == "📊 Laporan Laba Rugi":
-    halaman_laba_rugi(data, akun, t)
+    halaman_laba_rugi(data, akun)
 elif menu == "🏦 Neraca":
-    halaman_neraca(data, akun, t)
+    halaman_neraca(data, akun)
 elif menu == "📝 Jurnal Penutup":
-    halaman_jurnal_penutup(data, akun, t)
+    halaman_jurnal_penutup(data, akun)
 elif menu == "📁 Ekspor Excel":
-    halaman_ekspor(data, akun, t)
+    halaman_ekspor(data, akun)
 elif menu == "✏️ Kelola Akun":
-    halaman_kelola_akun(akun, t)
-elif menu == "⚙️ Pengaturan Tema":
-    halaman_pengaturan(t)
+    halaman_kelola_akun(akun)

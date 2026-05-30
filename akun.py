@@ -9,10 +9,10 @@ AKUN_DEFAULT = {
     "1-005": "Persediaan Pestisida",
     "1-006": "Perlengkapan Kebun - Bambu/Ajir",
     "1-007": "Perlengkapan Kebun - Plastik Mulsa",
-    "1-008": "Aset Tetap - Instalasi Irigasi Drip",
-    "1-009": "Akumulasi Penyusutan Instalasi Irigasi",
+    "1-008": "Aset Tetap - Irigasi Drip",
+    "1-009": "Akumulasi Penyusutan Irigasi",
     "2-001": "Utang Usaha",
-    "2-002": "Utang Bagi Hasil - Mbah",
+    "2-002": "Utang Bagi Hasil",
     "3-001": "Modal Kakak",
     "3-002": "Modal Adik",
     "3-003": "Prive Kakak",
@@ -25,8 +25,8 @@ AKUN_DEFAULT = {
     "5-004": "Beban Perawatan - Upah Lepas",
     "5-005": "Beban Pestisida",
     "5-006": "Beban Upah Panen",
-    "5-007": "Beban Bagi Hasil - Mbah",
-    "5-008": "Beban Penyusutan Instalasi Irigasi",
+    "5-007": "Beban Bagi Hasil",
+    "5-008": "Beban Penyusutan Irigasi",
 }
 
 AKUN_FILE = "akun_custom.json"
