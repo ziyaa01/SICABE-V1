@@ -4,9 +4,3 @@ backgroundColor = "#fce4ec"
 secondaryBackgroundColor = "#f8bbd0"
 textColor = "#212121"
 font = "sans serif"
-
-[client]
-showErrorDetails= false
-
-[toolbar]
-show = false

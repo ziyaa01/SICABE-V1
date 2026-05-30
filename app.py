@@ -183,6 +183,10 @@ def halaman_dashboard(data, akun):
          "Debet: Kas | Kredit: Modal Pemilik"),
         ("💸 Bayar bagi hasil ke pemilik lahan",
          "Debet: Beban Bagi Hasil | Kredit: Kas"),
+        ("⚙️ Penyesuaian Irigasi Drip (Akhir Bulan)", 
+         "Debet: Beban Penyusutan Alat | Kredit: Akumulasi Penyusutan Alat. [LOGIKA]: Alat drip 1 juta kamu disusutkan selama 3 tahun (36 bulan) karena rawan rusak/mampet di lahan. Sistem otomatis memotong Rp 27.778 setiap akhir bulan agar pengeluaran kebun adil dan laporan bulanan tidak langsung rugi besar di awal."),
+        ("🔒 Jurnal Penutup (Akhir Periode Panen)", 
+         "meriset kembali semua isi Pendapatan & Beban ke Rp 0. [LOGIKA]: Karena panen cabai terjadi seminggu 2 kali selama berbulan-bulan, biarkan menu ini JANGAN diklik dulu selama masa panen aktif. Begitu seluruh gelombang panen selesai total dan lahan mau dibongkar untuk bibit baru, barulah klik menu ini untuk meriset kalkulator ke Rp 0 agar untung-rugi musim berikutnya tidak tercampur hasil lama.")
     ]
 
     with st.container(border=True):
