@@ -7,7 +7,10 @@ PENYESUAIAN_FILE = "data_penyesuaian.json"
 def load_transaksi():
     if os.path.exists(TRANSAKSI_FILE):
         with open(TRANSAKSI_FILE, "r") as f:
-            return json.load(f)
+            data = json.load(f)
+            if isinstance(data, list):
+                data = sorted(data, key=lambda x: x.get("tanggal", ""))
+            return data
     return []
 
 def simpan_transaksi(data):

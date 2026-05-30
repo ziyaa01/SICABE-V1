@@ -397,7 +397,7 @@ def halaman_jurnal_umum(data, akun):
     if not data:
         st.warning("⚠️ Belum ada transaksi!")
         return
-
+    df = df.sort_values(by="Tanggal").reset_index(drop=True)
     rows = buat_rows_jurnal(data, akun)
     df = pd.DataFrame(rows)
     st.dataframe(df, use_container_width=True, height=600)
