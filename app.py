@@ -60,19 +60,26 @@ def halaman_login():
                     users = load_users()
                     if username not in users:
                         st.error("❌ Username tidak ditemukan!")
-                    elif users[username] != password:
+                    else:
+                        user_data = users[username]
+                        if isinstance(user_data, dict):
+                            password_asli = user_data.get("password", "")
+                        else:
+                            password_asli = user_data
+
+                    if password_asli != password_asli:
                         st.error("❌ Password salah! Coba lagi.")
                     else:
                         st.session_state.logged_in = True
                         st.session_state.username = username
-                        st.success(
-                            f"✅ Selamat datang, {username}!")
+                        st.success(f"✅ Selamat datang, {username}!")
                         st.rerun()
 
         with tab2:
             st.subheader("Buat Akun Baru")
             new_user = st.text_input(
                 "👤 Username Baru", key="reg_user")
+            new_email = st.text_input("📧 Email")
             new_pass = st.text_input(
                 "🔒 Password Baru",
                 type="password", key="reg_pass")
@@ -94,7 +101,7 @@ def halaman_login():
                         st.error(
                             "❌ Password minimal 6 karakter!")
                     else:
-                        users[new_user] = new_pass
+                        users[new_user] = {"password": new_pass, "email": new_email}
                         simpan_users(users)
                         st.success(
                             f"✅ Akun '{new_user}' berhasil dibuat! "
@@ -103,16 +110,29 @@ def halaman_login():
         with tab3:
             st.subheader("Lupa Password")
             lupa_user = st.text_input("👤 Username", key="lupa_user")
-            if st.button("🔄 Kirim Link Reset Password", use_container_width=True, key="btn_lupa"):
-                if not lupa_user:
-                    st.error("❌ Username harus diisi!")
+            lupa_email = st.text_input("📧 Email Terdaftar", key="lupa_email")
+    
+            if st.button("🔍 Cek Password", use_container_width=True, key="btn_lupa"):
+                if not lupa_user or not lupa_email:
+                    st.error("❌ Username dan Email harus diisi!")
                 else:
                     users = load_users()
                     if lupa_user not in users:
                         st.error("❌ Username tidak ditemukan!")
                     else:
-                        st.success(
-                            f"✅ Link reset password telah dikirim ke email terkait akun '{lupa_user}'.")
+                        user_data = users[lupa_user]
+
+                        if isinstance(user_data, dict):
+                            email_terdaftar = user_data.get("email", "")
+                            password_lama = user_data.get("password", "")
+                        else:
+                            email_terdaftar = ""
+                            password_lama = user_data
+                
+                        if lupa_email == email_terdaftar:
+                            st.info(f"🔑 Password Anda adalah: **{password_lama}**")
+                        else:
+                            st.error("❌ Email yang Anda masukkan salah atau tidak cocok!")
 
 # ========================
 # HEADER
@@ -397,7 +417,7 @@ def halaman_jurnal_umum(data, akun):
     if not data:
         st.warning("⚠️ Belum ada transaksi!")
         return
-    df = df.sort_values(by="Tanggal").reset_index(drop=True)
+  
     rows = buat_rows_jurnal(data, akun)
     df = pd.DataFrame(rows)
     st.dataframe(df, use_container_width=True, height=600)
@@ -641,25 +661,7 @@ def halaman_jurnal_penyesuaian(data, akun):
         sudah = all(
             p["keterangan"] in existing_ket
             for p in penyesuaian)
-        if sudah:
-            st.success("✅ Semua penyesuaian sudah diposting!")
-        else:
-            if st.button("✅ Posting ke Jurnal Umum",
-                use_container_width=True):
-                for p in penyesuaian:
-                    if p["keterangan"] not in existing_ket:
-                        data.append({
-                            "id": f"T{len(data)+1:02d}",
-                            "tanggal": p.get(
-                                "tanggal", "2026-04-30"),
-                            "keterangan": p["keterangan"],
-                            "debet": p["debet"],
-                            "kredit": p["kredit"],
-                            "nominal": p["nominal"]
-                        })
-                simpan_transaksi(data)
-                st.success("✅ Berhasil diposting!")
-                st.rerun()
+        st.success("Semua jurnal penyesuaian berhasil disimpan di sistem!")
 
         st.divider()
         st.subheader("🗑️ Hapus Penyesuaian")
@@ -683,7 +685,11 @@ def halaman_jurnal_penyesuaian(data, akun):
 def halaman_buku_besar_setelah_penyesuaian(data, akun):
     st.header("📚 Buku Besar")
     st.caption("Otomatis dari Jurnal Penyesuaian")
-    saldo = hitung_saldo(data, akun)
+
+    data_gabungan = data + load_penyesuaian()
+    
+    saldo = hitung_saldo(data_gabungan, akun)
+
     for kode, nama in akun.items():
         d = saldo[kode]["debet"]
         k = saldo[kode]["kredit"]
@@ -694,7 +700,7 @@ def halaman_buku_besar_setelah_penyesuaian(data, akun):
                 col2.metric("Total Kredit", f"Rp {k:,.0f}")
                 col3.metric("Saldo", f"Rp {abs(d-k):,.0f}")
                 rows = []
-                for tr in data:
+                for tr in data_gabungan:
                     dv = kv = 0
                     if isinstance(tr["debet"], list):
                         for item in tr["debet"]:
@@ -853,63 +859,54 @@ def halaman_neraca(data, akun):
 def halaman_jurnal_penutup(data, akun):
     st.header("📝 Jurnal Penutup")
     st.caption("Per 30 April 2026")
-    saldo = hitung_saldo(data, akun)
-    total_p = sum(
-        saldo[k]["kredit"] - saldo[k]["debet"]
-        for k in saldo if k.startswith("4-"))
-    total_b = sum(
-        saldo[k]["debet"] - saldo[k]["kredit"]
-        for k in saldo if k.startswith("5-"))
+    data_gabungan = data + load_penyesuaian()
+    saldo = hitung_saldo(data_gabungan, akun)
+    total_p = sum(saldo[k]["kredit"] - saldo[k]["debet"] for k in saldo if k.startswith("4-"))
+    total_b = sum(saldo[k]["debet"] - saldo[k]["kredit"] for k in saldo if k.startswith("5-"))
     laba = total_p - total_b
     rows = []
+    
     for kode, nama in akun.items():
         if kode.startswith("4-"):
-            nilai = (saldo[kode]["kredit"]
-                     - saldo[kode]["debet"])
+            nilai = saldo[kode]["kredit"] - saldo[kode]["debet"]
             if nilai > 0:
-                rows.append({
-                    "Keterangan": f"Menutup {nama}",
-                    "Akun Debet": nama,
-                    "Akun Kredit": "Ikhtisar Laba Rugi",
-                    "Nominal": f"Rp {nilai:,.0f}"
-                })
+                rows.append({"Tanggal": "2026-04-30", "Keterangan": nama, "Debet": nilai, "Kredit": 0})
+                rows.append({"Tanggal": "2026-04-30", "Keterangan": "   Ikhtisar Laba Rugi", "Debet": 0, "Kredit": nilai})
+                
     for kode, nama in akun.items():
         if kode.startswith("5-"):
-            nilai = (saldo[kode]["debet"]
-                     - saldo[kode]["kredit"])
+            nilai = saldo[kode]["debet"] - saldo[kode]["kredit"]
             if nilai > 0:
-                rows.append({
-                    "Keterangan": f"Menutup {nama}",
-                    "Akun Debet": "Ikhtisar Laba Rugi",
-                    "Akun Kredit": nama,
-                    "Nominal": f"Rp {nilai:,.0f}"
-                })
+                rows.append({"Tanggal": "2026-04-30", "Keterangan": "Ikhtisar Laba Rugi", "Debet": nilai, "Kredit": 0})
+                rows.append({"Tanggal": "2026-04-30", "Keterangan": f"   {nama}", "Debet": 0, "Kredit": nilai})
+                
     if laba >= 0:
-        rows.append({
-            "Keterangan": "Laba ke Modal",
-            "Akun Debet": "Ikhtisar Laba Rugi",
-            "Akun Kredit": "Modal Kakak & Adik",
-            "Nominal": f"Rp {laba:,.0f}"
-        })
+        if laba > 0:
+            rows.append({"Tanggal": "2026-04-30", "Keterangan": "Ikhtisar Laba Rugi", "Debet": laba, "Kredit": 0})
+            rows.append({"Tanggal": "2026-04-30", "Keterangan": "   Modal Kakak & Adik", "Debet": 0, "Kredit": laba})
     else:
-        rows.append({
-            "Keterangan": "Rugi ke Modal",
-            "Akun Debet": "Modal Kakak & Adik",
-            "Akun Kredit": "Ikhtisar Laba Rugi",
-            "Nominal": f"Rp {abs(laba):,.0f}"
-        })
+        rows.append({"Tanggal": "2026-04-30", "Keterangan": "Modal Kakak & Adik", "Debet": abs(laba), "Kredit": 0})
+        rows.append({"Tanggal": "2026-04-30", "Keterangan": "   Ikhtisar Laba Rugi", "Debet": 0, "Kredit": abs(laba)})
+        
     for kode, nama in akun.items():
         if kode.startswith("3-") and "Prive" in nama:
-            nilai = (saldo[kode]["debet"]
-                     - saldo[kode]["kredit"])
+            nilai = saldo[kode]["debet"] - saldo[kode]["kredit"]
             if nilai > 0:
-                rows.append({
-                    "Keterangan": f"Menutup {nama}",
-                    "Akun Debet": "Modal",
-                    "Akun Kredit": nama,
-                    "Nominal": f"Rp {nilai:,.0f}"
-                })
-    st.dataframe(pd.DataFrame(rows), use_container_width=True)
+                rows.append({"Tanggal": "2026-04-30", "Keterangan": "Modal Kakak & Adik", "Debet": nilai, "Kredit": 0})
+                rows.append({"Tanggal": "2026-04-30", "Keterangan": f"   {nama}", "Debet": 0, "Kredit": nilai})
+                
+    if rows:
+        df_jp = pd.DataFrame(rows)
+        def format_nol(val):
+            if val == 0:
+                return "-"
+            else:
+                return f"Rp {val:,.0f}"
+        
+        df_tampil = df_jp.style.format({"Debet": format_nol, "Kredit": format_nol})
+        st.dataframe(df_tampil, use_container_width=True)
+    else:
+        st.info("Belum ada data jurnal penutup.")
 
 # ========================
 # EKSPOR EXCEL

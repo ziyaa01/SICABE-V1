@@ -1,30 +1,44 @@
 import json
 import os
+import streamlit as st
 
-TRANSAKSI_FILE = "data_transaksi.json"
-PENYESUAIAN_FILE = "data_penyesuaian.json"
+def get_filename(jenis):
+    username = st.session_state.get("username", "default")
+    if username and username != "default" and username != "":
+        return f"data_{jenis}_{username}.json"
+    return f"data_{jenis}.json"
 
 def load_transaksi():
-    if os.path.exists(TRANSAKSI_FILE):
-        with open(TRANSAKSI_FILE, "r") as f:
-            data = json.load(f)
-            if isinstance(data, list):
-                data = sorted(data, key=lambda x: x.get("tanggal", ""))
-            return data
+    filename = get_filename("transaksi")
+    if os.path.exists(filename):
+        with open(filename, "r") as f:
+            try:
+                data = json.load(f)
+                if isinstance(data, list):
+                    data = sorted(data, key=lambda x: x.get("tanggal", ""))
+                return data
+            except:
+                return []
     return []
 
 def simpan_transaksi(data):
-    with open(TRANSAKSI_FILE, "w") as f:
+    filename = get_filename("transaksi")
+    with open(filename, "w") as f:
         json.dump(data, f, indent=2)
 
 def load_penyesuaian():
-    if os.path.exists(PENYESUAIAN_FILE):
-        with open(PENYESUAIAN_FILE, "r") as f:
-            return json.load(f)
+    filename = get_filename("penyesuaian")
+    if os.path.exists(filename):
+        with open(filename, "r") as f:
+            try:
+                return json.load(f)
+            except:
+                return []
     return []
 
 def simpan_penyesuaian(data):
-    with open(PENYESUAIAN_FILE, "w") as f:
+    filename = get_filename("penyesuaian")
+    with open(filename, "w") as f:
         json.dump(data, f, indent=2)
 
 def hitung_saldo(data, akun):

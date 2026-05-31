@@ -1,3 +1,11 @@
 {
-  "admin": "sicabe12"
+  "admin": "sicabe12",
+  "zara": {
+    "password": "1234lima",
+    "email": "mevrouwzara@gmail.com"
+  },
+  "zarr": {
+    "password": "000000",
+    "email": "azaradwiastutik72@gmail.com"
+  }
 }
