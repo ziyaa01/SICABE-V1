@@ -159,7 +159,14 @@ def tampilkan_header():
 # ========================
 def halaman_dashboard(data, akun):
     st.header("🏠 Dashboard")
-    saldo = hitung_saldo(data, akun)
+    try:
+        import transaksi as tr_modul
+        data_penyesuaian = tr_modul.load_penyesuaian()
+        data_total_dashboard = data + data_penyesuaian
+    except:
+        data_total_dashboard = data
+
+    saldo = hitung_saldo(data_total_dashboard, akun)
     total_p = sum(
         saldo[k]["kredit"] - saldo[k]["debet"]
         for k in saldo if k.startswith("4-"))
@@ -739,7 +746,16 @@ def halaman_neraca_saldo(
     st.header(f"⚖️ {judul}")
     if caption:
         st.caption(caption)
-    saldo = hitung_saldo(data, akun)
+        if "Setelah" in judul or "Disesuaikan" in judul:  
+            try:
+                import transaksi as tr_modul
+                data_penyesuaian = tr_modul.load_penyesuaian()
+                data_total_nsd = data + data_penyesuaian
+            except:
+                data_total_nsd = data
+            saldo = hitung_saldo(data_total_nsd, akun)
+        else:
+            saldo = hitung_saldo(data, akun)
     rows = []
     total_d = total_k = 0
     for kode, nama in akun.items():
@@ -771,7 +787,13 @@ def halaman_neraca_saldo(
 def halaman_laba_rugi(data, akun):
     st.header("📊 Laporan Laba Rugi")
     st.caption("Periode: Januari – April 2026")
-    saldo = hitung_saldo(data, akun)
+    try:
+        import transaksi as tr_modul
+        data_penyesuaian = tr_modul.load_penyesuaian()
+        data_total_lr = data + data_penyesuaian
+    except:
+        data_total_lr = data
+    saldo = hitung_saldo(data_total_lr, akun)
     col1, col2 = st.columns(2)
     with col1:
         st.subheader("💰 Pendapatan")
@@ -808,21 +830,30 @@ def halaman_laba_rugi(data, akun):
 def halaman_neraca(data, akun):
     st.header("🏦 Neraca")
     st.caption("Per 30 April 2026")
-    saldo = hitung_saldo(data, akun)
+    try:
+        import transaksi as tr_modul
+        data_penyesuaian = tr_modul.load_penyesuaian()
+        data_total_neraca = data + data_penyesuaian
+    except:
+        data_total_neraca = data
+    saldo = hitung_saldo(data_total_neraca, akun)
     col1, col2 = st.columns(2)
+    
     with col1:
         st.subheader("🏢 ASET")
         total_aset = 0
         for kode, nama in akun.items():
             if kode.startswith("1-"):
-                nilai = (saldo[kode]["debet"]
+                if "akumulasi penyusutan" in nama or saldo[kode]["kredit"]>saldo[kode]["debet"]:
+                    nilai = saldo[kode]["kredit"] - saldo[kode]["debet"]
+                    total_aset -= nilai
+                    st.write(f". {kode} - {nama}: -Rp {nilai:,.0f}")
+                else:
+                    nilai = (saldo[kode]["debet"]
                          - saldo[kode]["kredit"])
-                if nilai > 0:
-                    st.write(
-                        f"• {kode} - {nama}:"
-                        f" **Rp {nilai:,.0f}**")
-                    total_aset += nilai
-        st.write(f"**Total Aset: Rp {total_aset:,.0f}**")
+                    total_aset += nilai 
+                    st.write(f"• {kode} - {nama}: Rp {nilai:,.0f}")         
+        
     with col2:
         st.subheader("💼 KEWAJIBAN")
         total_ke = 0
@@ -835,6 +866,7 @@ def halaman_neraca(data, akun):
                         f"• {kode} - {nama}:"
                         f" **Rp {nilai:,.0f}**")
                     total_ke += nilai
+                    
         st.subheader("💼 EKUITAS")
         for kode, nama in akun.items():
             if kode.startswith("3-"):
@@ -844,8 +876,23 @@ def halaman_neraca(data, akun):
                     st.write(
                         f"• {kode} - {nama}:"
                         f" **Rp {abs(nilai):,.0f}**")
-                    total_ke += nilai
-        st.write(f"**Total K+E: Rp {total_ke:,.0f}**")
+                    total_ke += nilai          
+
+        total_pendapatan = 0
+        total_beban = 0
+        for kode in akun:
+            if kode.startswith("4-"): # Pendapatan
+                total_pendapatan += (saldo[kode]["kredit"] - saldo[kode]["debet"])
+            elif kode.startswith("5-"): # Beban
+                total_beban += (saldo[kode]["debet"] - saldo[kode]["kredit"])
+        
+        laba_neto = total_pendapatan - total_beban
+        
+        if laba_neto != 0:
+            st.write(f"• 3-005 - Ikhtisar Laba Rugi: **Rp {laba_neto:,.0f}**")
+            total_ke += laba_neto
+        
+        st.write(f"**Total K+E: Rp {total_ke:,.0f}**")     
     st.divider()
     if abs(total_aset - total_ke) < 1:
         st.success("✅ Neraca Balance!")

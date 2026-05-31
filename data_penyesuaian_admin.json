@@ -1,0 +1,18 @@
+[
+  {
+    "id": "P01",
+    "tanggal": "2026-04-30",
+    "keterangan": "Penyusutan Irigasi dibeli 1jt estimasi umur pakai 3th",
+    "debet": "5-008",
+    "kredit": "1-009",
+    "nominal": 27778
+  },
+  {
+    "id": "P02",
+    "tanggal": "2026-04-30",
+    "keterangan": "Stok pestisida",
+    "debet": "5-005",
+    "kredit": "1-005",
+    "nominal": 100000
+  }
+]

@@ -223,22 +223,5 @@
     "debet": "5-007",
     "kredit": "1-001",
     "nominal": 1200000
-  },
-  {
-    "id": "T28",
-    "tanggal": "2026-04-30",
-    "keterangan": "Distribusi laba bersih",
-    "debet": "3-005",
-    "kredit": [
-      {
-        "kode": "3-003",
-        "nominal": 440000
-      },
-      {
-        "kode": "3-004",
-        "nominal": 440000
-      }
-    ],
-    "nominal": 880000
   }
 ]
